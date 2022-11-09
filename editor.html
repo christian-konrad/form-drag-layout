@@ -1,0 +1,583 @@
+<body>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.js'></script>
+    <script src="./resizer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+
+    <style>
+        .gu-mirror{position:fixed!important;margin:0!important;z-index:9999!important;opacity:.8}.gu-hide{display:none!important}.gu-unselectable{-webkit-user-select:none!important;-moz-user-select:none!important;-ms-user-select:none!important;user-select:none!important}.gu-transit{opacity:.2}
+
+        [data-rz-handle] {
+            flex: 0 0 6px;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        [data-rz-handle] div {
+            width: 6px;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .form-canvas {
+            border: 1px solid rgb(212, 203, 203);
+            height: fit-content;
+            max-width: 800px;
+            margin: auto;
+            padding: 16px;
+            height: calc(100% - 64px);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: nowrap;
+            min-height: 18px;
+            background: transparent;
+            margin-bottom: 4px;
+            flex-basis: fit-content;
+            transition: background 0.1s;
+            position: relative;
+        }
+
+        .form-canvas[data-dragging="true"] .row {
+            background: #00000009;
+        }
+
+        .row:last-child {
+            flex-grow: 1;
+        }
+
+        .row:first-child:empty {
+            min-height: 10px;
+        }
+
+        .row[data-virtual="true"] {
+            min-height: 10px;
+        }
+
+        .field-wrapper {
+            height: fit-content;
+            border: 2px solid transparent;
+            flex: 1 0 auto;
+            
+            user-select: none;
+            font-family: sans-serif;
+            cursor: move;
+            position: relative;
+        }
+
+        .field-wrapper:hover {
+            background: #e1dfef;
+            border: 2px solid #4949d3;
+        }
+
+        .field-wrapper .inner {
+            padding: 8px 4px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 14px;
+            padding: 4px 0;
+        }
+
+        input[type="text"] {
+            height: 32px;
+            border-radius: 4px;
+            border: 1px solid gray;
+            padding-left: 8px;
+        }
+
+        .palette {
+            width: 100px;
+            background: #ebebeb;
+            height: 100%;
+            border-right: 1px solid;
+        }
+
+        .palette .field-wrapper {
+            background: #ded2d2;
+            border: 1px solid gray;
+            margin: 8px;
+        }
+
+        .palette .field-wrapper input {
+            display: none;
+        }
+
+        .editor {
+            display: flex;
+            height: -webkit-fill-available;
+        }
+
+        .container {
+            flex: 1;
+            padding: 16px;
+        }
+
+        .handle {
+            width: 24px;
+            background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABmJLR0QA/wD/AP+gvaeTAAABg0lEQVRYhe3XsU4UQRzH8Y9AQwIFCr2YQGVnp9yVxxsQOt/A2BgDlcFH4ClQXsA3kJgIjaXQ0R3cJSYmFLcWO+Ru52ZvN+daGPaXbLGz3/3Nb3Z3/jPLQ9diTe4JuoHvV7DbeIFb/J4/2ljdYJZhhKMZ7MfAZLhBp4kAF8Hw/hhhK8FtT3R+f3yvMl+oEWAzOn+UaIOn4dqkntXwr9RnxVH1sZbgHssf+yR70kSA9RBiIH+kOzPYTmAGofP1JgK0avVPVbcU7+MtnssL010Jt4p3eI1l/PjbgHCoOLfPsJTglvAtYg+aCHAdmWZ4meB2Etx1lXmdUpxSVrNtNKd/QQeKo/qq/BWcRez7KvN48SjTHnr4iWP8KuFW8Ea+CH2Rl/BWrf5/beAUQ5ybvdHsykv1UD4DGtmQnCrO7RvlW7LbiP3URICh6RLbS3C7CW5QZV6nFF9G5xmuEtyV6XIc3zuXOsa73RE+zGCPjP8N+njVRADy99uT/iGJtRXY1HfSakp/AOZvcrg84NmvAAAAAElFTkSuQmCC");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 18px;
+            opacity: 0;
+        }
+
+        .row:hover .handle {
+            opacity: 0.6;
+            cursor: move;
+        }
+
+        .row[data-empty="true"] .handle {
+            opacity: 0;
+        }
+
+        .row-content {
+            display: flex;
+            flex-wrap: wrap;
+            width: calc(100% - 24px);
+            position: relative;
+        }
+
+        [data-rz-handle] {
+            opacity: 0;
+        }
+
+        .row:hover [data-rz-handle] {
+            opacity: 0.4;
+        }
+
+        .resize-r {
+            background: white;
+            border: 2px solid #4949d3; 
+            position: absolute;
+            height: calc(100% - 24px);
+            width: 4px;
+            right: -5px;
+            top: 12px;
+            display: none;
+        }
+
+        .resize-l {
+            background: white;
+            border: 2px solid #4949d3; 
+            position: absolute;
+            height: calc(100% - 24px);
+            width: 4px;
+            left: -5px;
+            top: 12px;
+            display: none;
+        }
+
+        .field-wrapper:not(:last-child):hover .resize-r {
+            display: block;
+        }
+
+        .field-wrapper:not(:first-child):hover .resize-l {
+            display: block;
+        }
+
+        .field-wrapper[data-columns="1"] {
+            width: calc(8.33% - 4px);
+        }
+
+        .field-wrapper[data-columns="2"] {
+            width: calc(16.66% - 4px);
+        }
+
+        .field-wrapper[data-columns="3"] {
+            width: calc(25% - 4px);
+        }
+
+        .field-wrapper[data-columns="4"] {
+            width: calc(33.33% - 4px);
+        }
+
+        .field-wrapper[data-columns="5"] {
+            width: calc(41.65% - 4px);
+        }
+
+        .field-wrapper[data-columns="6"] {
+            width: calc(50% - 4px);
+        }
+
+        .field-wrapper[data-columns="7"] {
+            width: calc(58.33% - 4px);
+        }
+
+        .field-wrapper[data-columns="8"] {
+            width: calc(66.64% - 4px);
+        }
+
+        .field-wrapper[data-columns="9"] {
+            width: calc(74.97% - 4px);
+        }
+
+        .field-wrapper[data-columns="10"] {
+            width: calc(83.33% - 4px);
+        }
+
+        .field-wrapper[data-columns="11"] {
+            width: calc(91.63% - 4px);
+        }
+
+        .field-wrapper[data-columns="12"] {
+            width: calc(100% - 4px);
+        }
+
+        textarea {
+            resize: vertical; /* user can resize vertically, but width is fixed */
+        }
+
+    </style>
+
+    <div class="editor">
+        <div class="palette">
+            <div class="field-wrapper">
+                <label>Text</label>
+                <input type="text">
+            </div>
+        </div>
+        <div class="container">
+            <div class="form-canvas"></div>
+        </div>
+    </div>
+
+    <script>
+        const schema = {
+            rows: [
+             {
+                    components: [
+                        {
+                            type: "title",
+                            value: "My Form"
+                        }
+                    ],
+                },
+                {
+                    components: [
+                        {
+                            label: "First Name",
+                            value: "John"
+                        },
+                        {
+                            label: "Last Name",
+                            value: "Doe"
+                        }
+                    ],
+                },
+                {
+                    components: [
+                        {
+                            label: "City"
+                        },
+                        {
+                            label: "ZIP Code"
+                        },
+                        {
+                            label: "Street"
+                        }
+                    ]
+                },
+                {
+                    components: [
+                        {
+                            label: "Notes",
+                            type: "memo"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const container = document.querySelector('.form-canvas');
+
+        const renderComponent = component => {
+            const renderedComponent = document.createElement('div');
+            renderedComponent.className = 'field-wrapper';
+
+            const inner = document.createElement('div');
+            inner.className = 'inner';
+
+            renderedComponent.appendChild(inner);
+
+            if (component.type == "title") {
+                const span = document.createElement('h2');
+                span.innerText = component.value;
+                inner.appendChild(span);
+            } else {
+                const label = document.createElement('label');
+                label.innerText = component.label;
+
+                let input;
+                if (component.type == "memo") {
+                    input = document.createElement('textarea');
+                    input.setAttribute('rows', 8);
+                    component.value && (input.value = component.value);
+                } else {
+                    input = document.createElement('input');
+                    input.setAttribute('type', 'text');
+                    component.value && (input.value = component.value);
+                }                
+
+                inner.appendChild(label);
+                inner.appendChild(input);
+            }
+
+            const resizeHandleLeft = document.createElement('div');
+            resizeHandleLeft.className = 'resize-l';
+            inner.appendChild(resizeHandleLeft);
+
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'resize-r';
+            inner.appendChild(resizeHandle);
+
+            return renderedComponent;
+        };
+
+        const renderRow = row => {
+            const renderedRow = document.createElement('div');
+            renderedRow.className = 'row';
+            //if (row.isVirtual) renderedRow.setAttribute('data-virtual', true);
+            const handle = document.createElement('div');
+            handle.className = 'handle';
+            renderedRow.appendChild(handle);
+
+            const content = document.createElement('div');
+            content.className = 'row-content';
+            renderedRow.appendChild(content);
+
+            row.components.forEach(component => {
+                const renderedComponent = renderComponent(component);
+                content.appendChild(renderedComponent);
+            });
+            return renderedRow;
+        };
+
+        const insertBefore = (newNode, referenceNode) => {
+            referenceNode.parentNode.insertBefore(newNode, referenceNode);
+        }
+
+        const getStepWidth = (percent) => {
+            const stepPercentage = 0.0833;
+
+            return Math.max(Math.min(Math.floor(percent / stepPercentage), 12), 1);
+        }
+
+
+        // TODO call in resizable and after drop
+        // const onResize
+
+        const onResize = (event) => {
+            const parentWidth = event.target.parentElement.getBoundingClientRect().width;
+
+            const oldWidth = event.target.getBoundingClientRect().width;
+            let newWidth = Math.min(event.rect.width, parentWidth);
+
+            let percent = newWidth / parentWidth;
+
+            // introduce steps (8,33 % steps for 12 column grid)
+
+            percent = Math.max(percent - (percent % 0.0833), 3 * 0.0833);
+
+            newWidth = parentWidth * percent;
+
+            // resize the others, while maintaining the aspect ratio
+
+            const fields = [...event.target.parentElement.querySelectorAll('.field-wrapper')];
+
+            const remainingWidthBeforeResize = parentWidth - oldWidth;
+            const remainingWidthAfterResize = parentWidth - newWidth;
+
+            // fields.map(field => {
+            //     if (field == event.target) return 0;
+            //     return field.getBoundingClientRect().width;
+            // });
+
+            fields.forEach(field => {
+                if (field == event.target) return;
+
+                // get aspect ratio of the field
+                const oldWidth = field.getBoundingClientRect().width;
+
+
+                // get old ratio on remaining space
+                const oldRatio = oldWidth / remainingWidthBeforeResize;
+
+                //console.log("remainingWidthAfterResize: " + remainingWidthAfterResize);
+                //console.log("remainingWidthBeforeResize: " + remainingWidthBeforeResize);
+                //console.log("oldRatio: " + oldRatio);
+
+                const newWidth = remainingWidthAfterResize * oldRatio;
+
+                //console.log("newWidth: " + newWidth);
+
+                const newWidthPercent = Math.min(newWidth / parentWidth, 1);
+
+                //console.log("newWidthPercent: " + newWidthPercent);
+
+                const stepWidth = getStepWidth(newWidthPercent);
+
+                field.setAttribute('data-columns', stepWidth);
+
+                // Object.assign(field.style, {
+                //     width: newWidthPercent == 1 ? 'unset' : `calc(${newWidthPercent * 100}% - 24px)`,
+                //     //width: `calc(${(1 - percent) * 100 / fields.length - 1}% - 24px)`,
+                //     //transform: `translate(${x}px, ${y}px)`
+                // });
+            });
+
+            const stepWidth = getStepWidth(percent);
+
+            event.target.setAttribute('data-columns', stepWidth);
+        };
+
+        const initResize = element => {
+            interact(element)
+                .resizable({
+                    edges: {
+                        top: false,
+                        left: '.resize-l',
+                        bottom: false,
+                        right : '.resize-r'
+                    },
+                    listeners: {
+                        move: function (event) {
+                            onResize(event);
+                            // let { x, y } = event.target.dataset
+
+                            // x = (parseFloat(x) || 0) + event.deltaRect.left
+                            // y = (parseFloat(y) || 0) + event.deltaRect.top
+
+                            // TODO recalculate step widths
+                            
+
+                            // Object.assign(event.target.style, {
+                            //     width: percent == 1 ? 'unset' : `calc(${percent * 100}% - 24px)`,
+                            //     //transform: `translate(${x}px, ${y}px)`
+                            // });
+
+                            // TODO ensure it never grows over 100% in sum
+
+                            //Object.assign(event.target.dataset, { x, y })
+                        }
+                    }
+                })
+            };
+
+        const addVirtualRows = () => {
+            // const rows = [...document.querySelectorAll('.row')];
+            // const virtualRow = renderRow({ components: [], isVirtual: true });
+            // insertBefore(virtualRow, rows[0]);
+            // drake.containers.push(virtualRow);
+
+            // rows.forEach((row, index) => {
+            //         if (index >= rows.length - 1) return;
+            //         const virtualRow = renderRow({ components: [], isVirtual: true });
+            //         insertBefore(virtualRow, row);
+            //         drake.containers.push(virtualRow);
+            //     });
+            
+        };
+
+        const handleEmptyRows = () => {
+            const rows = [...document.querySelectorAll('.row')];
+            rows
+                // .map(row => {row.setAttribute('data-virtual', false); return row;})
+                .filter(row => !row.querySelector('.row-content').querySelector('.field-wrapper'))
+                .forEach(row => row.remove());
+
+            rows
+                .filter(row => !!row.querySelector('.row-content').querySelector('.field-wrapper'))
+                .forEach(row => row.setAttribute('data-empty', false));
+            const firstRow = renderRow({ components: [] });
+            const lastRow = renderRow({ components: [] });
+
+            firstRow.setAttribute('data-empty', true);
+            lastRow.setAttribute('data-empty', true);
+
+            //insertBefore(virtualRow, rows[0]);
+            container.insertBefore(firstRow, [...document.querySelectorAll('.row')][0]);
+            container.appendChild(lastRow);
+            // window.rows.push(firstRow);
+            // window.rows.push(lastRow);
+            drake.containers.push(firstRow.querySelector('.row-content'));
+            drake.containers.push(lastRow.querySelector('.row-content'));
+        };
+
+        // ==================
+
+        const canvas = document.querySelector('.form-canvas');
+
+        schema.rows.map(row => {
+            const renderedRow = renderRow(row);
+            container.appendChild(renderedRow);
+            return renderRow;
+        });
+
+        const rows = [document.querySelector('.palette'), ...document.querySelectorAll('.row-content')];
+
+        const options = {
+            direction: 'horizontal',
+            accepts: (el, target, source, sibling) => {                
+                return [...target.querySelectorAll('.field-wrapper')].length < 4; // elements can be dropped in any of the `containers` by default
+            },
+            moves: function (el, source, handle, sibling) {
+                return el.className == 'field-wrapper' && !handle.classList.contains('resize-r') && !handle.classList.contains('resize-l');
+            },
+        };
+
+        const drake = dragula(rows, options);
+
+        // also allow row dragging
+
+        let rowDrake;
+
+        const initRowDragging = () => {
+            rowDrake = dragula([container], {
+                moves: function (el, source, handle, sibling) {
+                    return !![...el.querySelectorAll('.field-wrapper')].length && handle.classList.contains('handle');
+                },
+            });
+            rowDrake.on('drag', el => {
+                canvas.setAttribute('data-dragging', true);
+            });
+
+            rowDrake.on('dragend', el => {
+                handleEmptyRows();
+                canvas.setAttribute('data-dragging', false);
+            });
+        };        
+
+        drake.on('drag', el => {
+            addVirtualRows();
+            canvas.setAttribute('data-dragging', true);
+            // prevent row dragging
+            rowDrake.destroy();
+        });
+
+        drake.on('dragend', el => {
+            handleEmptyRows();
+            canvas.setAttribute('data-dragging', false);
+            // restore row dragging
+            //onResize(el);
+            initRowDragging();
+        });
+
+        initRowDragging();  
+
+        handleEmptyRows();
+
+        initResize('.field-wrapper');
+
+        //const myResizer = new Resizer('.row:nth-child(3) .row-content');
+        
+    </script>
+</body>
