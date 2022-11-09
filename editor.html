@@ -241,8 +241,10 @@
     <div class="editor">
         <div class="palette">
             <div class="field-wrapper">
-                <label>Text</label>
-                <input type="text">
+                <div class="inner">
+                    <label>Text</label>
+                    <input type="text">
+                </div>
             </div>
         </div>
         <div class="container">
@@ -375,11 +377,11 @@
         // TODO call in resizable and after drop
         // const onResize
 
-        const onResize = (event) => {
-            const parentWidth = event.target.parentElement.getBoundingClientRect().width;
+        const onResize = (target, newWidth) => {
+            const parentWidth = target.parentElement.getBoundingClientRect().width;
 
-            const oldWidth = event.target.getBoundingClientRect().width;
-            let newWidth = Math.min(event.rect.width, parentWidth);
+            const oldWidth = target.getBoundingClientRect().width;
+            //let newWidth = Math.min(event.rect.width, parentWidth);
 
             let percent = newWidth / parentWidth;
 
@@ -391,18 +393,13 @@
 
             // resize the others, while maintaining the aspect ratio
 
-            const fields = [...event.target.parentElement.querySelectorAll('.field-wrapper')];
+            const fields = [...target.parentElement.querySelectorAll('.field-wrapper')];
 
             const remainingWidthBeforeResize = parentWidth - oldWidth;
             const remainingWidthAfterResize = parentWidth - newWidth;
 
-            // fields.map(field => {
-            //     if (field == event.target) return 0;
-            //     return field.getBoundingClientRect().width;
-            // });
-
             fields.forEach(field => {
-                if (field == event.target) return;
+                if (field == target) return;
 
                 // get aspect ratio of the field
                 const oldWidth = field.getBoundingClientRect().width;
@@ -436,8 +433,28 @@
 
             const stepWidth = getStepWidth(percent);
 
-            event.target.setAttribute('data-columns', stepWidth);
+            target.setAttribute('data-columns', stepWidth);
         };
+
+        const handleResizeAfterDrop = element => {
+            // get columns of all elements in the target row
+            // check if > 12
+            // shrink accordingly to aspect ratio
+            const fields = [...element.parentElement.querySelectorAll('.field-wrapper')];
+            const cols = fields.map(field => parseInt(field.getAttribute('data-columns')) || 4);
+            console.log(fields);
+            console.log(cols);
+            const sum = cols.reduce((acc, val) => acc + val, 0);
+            console.log(sum);
+
+            if (sum <= 12) return;
+
+            const ratio = 12 / sum;
+            cols.forEach((width, index) => {
+                const newWidth = Math.floor(width * ratio);
+                fields[index].setAttribute('data-columns', newWidth);
+            });
+        }
 
         const initResize = element => {
             interact(element)
@@ -450,23 +467,9 @@
                     },
                     listeners: {
                         move: function (event) {
-                            onResize(event);
-                            // let { x, y } = event.target.dataset
-
-                            // x = (parseFloat(x) || 0) + event.deltaRect.left
-                            // y = (parseFloat(y) || 0) + event.deltaRect.top
-
-                            // TODO recalculate step widths
-                            
-
-                            // Object.assign(event.target.style, {
-                            //     width: percent == 1 ? 'unset' : `calc(${percent * 100}% - 24px)`,
-                            //     //transform: `translate(${x}px, ${y}px)`
-                            // });
-
-                            // TODO ensure it never grows over 100% in sum
-
-                            //Object.assign(event.target.dataset, { x, y })
+                            const parentWidth = event.target.parentElement.getBoundingClientRect().width;
+                            let newWidth = Math.min(event.rect.width, parentWidth);
+                            onResize(event.target, newWidth);
                         }
                     }
                 })
@@ -567,7 +570,9 @@
             handleEmptyRows();
             canvas.setAttribute('data-dragging', false);
             // restore row dragging
-            //onResize(el);
+            //onResize(el, el.getBoundingClientRect().width);
+            // TODO also adjust parent row
+            handleResizeAfterDrop(el);
             initRowDragging();
         });
 
