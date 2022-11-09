@@ -96,22 +96,23 @@
 
         .palette {
             width: 100px;
-            background: #ebebeb;
+            background: #fafafa;
             height: 100%;
-            border-right: 1px solid;
+            border-right: 1px solid #d4d4d4;
         }
 
         .palette .field-wrapper {
-            background: #ded2d2;
-            border: 1px solid gray;
+            background: #f2f2f2;
+            border: 1px solid #bdbdbd;
             margin: 8px;
             width: 80px !important;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            text-align: center;
         }
 
-        .palette .field-wrapper input {
+        .palette .field-wrapper input, .palette .field-wrapper textarea {
             display: none;
         }
 
@@ -281,9 +282,21 @@
     <div class="editor">
         <div class="palette">
             <div class="field-wrapper">
-                <div class="inner">
+                <div class="inner" data-component-type="text">
                     <label>Text</label>
-                    <input type="text">
+                    <input type="text" />
+                </div>
+            </div>
+            <div class="field-wrapper">
+                <div class="inner" data-component-type="number">
+                    <label>Number</label>
+                    <input type="text" />
+                </div>
+            </div>
+            <div class="field-wrapper">
+                <div class="inner" data-component-type="memo">
+                    <label>Textarea</label>
+                    <textarea rows="8"></textarea>
                 </div>
             </div>
         </div>
