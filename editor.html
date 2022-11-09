@@ -193,12 +193,10 @@
             display: none;
         }
 
-        .field-wrapper:not(:last-child):hover .resize-r {
+        .field-wrapper:not(:last-child):hover .resize-r,
+        .field-wrapper:not(:first-child):hover .resize-l  {
             display: block;
-        }
-
-        .field-wrapper:not(:first-child):hover .resize-l {
-            display: block;
+            z-index: 1;
         }
 
         .field-wrapper[data-columns="1"] {
@@ -280,6 +278,29 @@
             user-select: none;
         }
 
+        .field-wrapper[data-selected="true"] {
+            border-color: #8d8dff;
+        }
+
+        .field-wrapper:hover:after,
+        .field-wrapper[data-selected="true"]:after {
+            content: attr(data-columns);
+            background: #8d8dff;
+            color: white;
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 2px 8px;
+            font-size: 11px;
+        }
+
+        .field-wrapper p {
+            font-size: 13px;
+            color: gray;
+            padding: 0;
+            margin: 4px 0;
+        }
+
     </style>
 
     <div class="editor">
@@ -306,6 +327,12 @@
         <div class="container">
             <div class="form-canvas"></div>
         </div>
+        <!-- <div class="properties">
+            <div class="property">
+                <label>Colspan</label>
+                <span data-property="colspan"></span>
+            </div>
+        </div> -->
     </div>
 
     <script>
@@ -316,7 +343,8 @@
                     components: [
                         {
                             type: "title",
-                            value: "Loan Application"
+                            value: "Loan Application",
+                            cols: 12
                         }
                     ],
                 },
@@ -325,7 +353,8 @@
                         {
                             type: "title",
                             tag: "h4",
-                            value: "Please fill out following information"
+                            value: "Please fill out following information",
+                            cols: 12
                         }
                     ],
                 },
@@ -333,11 +362,13 @@
                     components: [
                         {
                             label: "First Name",
-                            value: "John"
+                            value: "John",
+                            cols: 6
                         },
                         {
                             label: "Last Name",
-                            value: "Doe"
+                            value: "Doe",
+                            cols: 6
                         }
                     ],
                 },
@@ -359,7 +390,8 @@
                         {
                             type: "title",
                             tag: "h4",
-                            value: "Address"
+                            value: "Address",
+                            cols: 12
                         }
                     ],
                 },
@@ -463,7 +495,18 @@
                         {
                             type: "title",
                             tag: "h4",
-                            value: "Notes"
+                            value: "Notes",
+                            cols: 12
+                        }
+                    ],
+                },
+                {
+                    components: [
+                        {
+                            type: "title",
+                            tag: "p",
+                            value: "ℹ️ Please describe your reason for rejection 👎 or approval 👍.\n\n Do you have any additional notes?",
+                            cols: 12
                         }
                     ],
                 },
@@ -471,7 +514,8 @@
                     components: [
                         {
                             label: "Notes",
-                            type: "memo"
+                            type: "memo",
+                            cols: 12
                         }
                     ]
                 },
@@ -708,6 +752,19 @@
             drake.containers.push(lastRow.querySelector('.row-content'));
         };
 
+        const onElementSelect = event => {
+            [...document.querySelectorAll('.field-wrapper')].forEach(field => {
+                field.setAttribute('data-selected', false);
+            });
+            event.currentTarget.setAttribute('data-selected', true);
+        }
+
+        const initPropertiesPanel = () => {
+            [...document.querySelectorAll('.field-wrapper')].forEach(field => {
+                field.addEventListener('click', e => onElementSelect(e));
+            });
+        };
+
         // ==================
 
         const canvas = document.querySelector('.form-canvas');
@@ -774,6 +831,8 @@
         handleEmptyRows();
 
         initResize('.field-wrapper');
+
+        initPropertiesPanel();
 
         //const myResizer = new Resizer('.row:nth-child(3) .row-content');
         
