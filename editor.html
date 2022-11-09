@@ -87,7 +87,7 @@
             padding: 4px 0;
         }
 
-        input[type="text"] {
+        input[type="text"], input[type="number"] {
             height: 32px;
             border-radius: 4px;
             border: 1px solid gray;
@@ -159,11 +159,11 @@
             opacity: 0.4;
         }
 
-        .field-wrapper.spacer .inner {
+        .field-wrapper[data-component-type="spacer"] .inner {
             height: 56px;
         }
 
-        .field-wrapper.spacer:hover .inner {
+        .field-wrapper[data-component-type="spacer"]:hover .inner {
             background: #f6f6f6;
         }
 
@@ -243,6 +243,12 @@
 
         .field-wrapper[data-columns="12"] {
             width: calc(100% - 4px);
+        }
+
+        @media(max-width: 786px) {
+            .field-wrapper {
+                width: calc(100% - 4px) !important;
+            }
         }
 
         textarea {
@@ -390,8 +396,45 @@
                     components: [                   
                         {
                             label: "Yearly Salary",
+                            type: "number",
                             cols: 6,
                             suffix: "USD"
+                        },
+                        {
+                            type: "spacer",
+                            cols: 6
+                        },
+                    ]
+                },
+                {
+                    components: [
+                        {
+                            type: "title",
+                            tag: "h4",
+                            value: "Loan Information"
+                        }
+                    ],
+                },
+                {
+                    components: [                   
+                        {
+                            label: "Amount",
+                            type: "number",
+                            cols: 6,
+                            suffix: "USD"
+                        },                        
+                        {
+                            label: "Reason",
+                            cols: 6,
+                        }
+                    ]
+                },
+                {
+                    components: [                   
+                        {
+                            label: "Installments",
+                            type: "number",
+                            cols: 6,
                         },
                         {
                             type: "spacer",
@@ -423,7 +466,8 @@
 
         const renderComponent = component => {
             const renderedComponent = document.createElement('div');
-            renderedComponent.className = `field-wrapper ${component.type || 'text'}`;
+            renderedComponent.className = `field-wrapper`;
+            renderedComponent.setAttribute('data-component-type', component.type || 'text');
 
             if (component.cols) {
                 renderedComponent.setAttribute('data-columns', component.cols);
@@ -451,7 +495,7 @@
                     component.value && (input.value = component.value);
                 } else {
                     input = document.createElement('input');
-                    input.setAttribute('type', 'text');
+                    input.setAttribute('type', component.type || 'text');
                     component.value && (input.value = component.value);
                 }                
 
