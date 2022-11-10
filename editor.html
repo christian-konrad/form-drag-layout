@@ -526,12 +526,13 @@
                                             {
                                                 label: "Type",
                                                 type: "text",
-                                                cols: 6,
+                                                cols: 8,
                                             },
                                             {
                                                 label: "Value",
                                                 type: "number",
-                                                cols: 6,
+                                                suffix: "USD",
+                                                cols: 4,
                                             },
                                         ]
                                     }
@@ -939,7 +940,7 @@
         let rowDrake;
 
         const initRowDragging = () => {
-            rowDrake = dragula([container], {
+            rowDrake = dragula([container, ...document.querySelectorAll('.subform')], {
                 moves: function (el, source, handle, sibling) {
                     return !![...el.querySelectorAll('.field-wrapper')].length && handle.classList.contains('handle');
                 },
