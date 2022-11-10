@@ -311,6 +311,17 @@
             padding-left: 8px;
         }
 
+        [data-component-type="subform"] label {
+            font-weight: bold;
+        }
+
+        [data-component-type="subform"] button {
+            width: 100px;
+            height: 32px;
+            margin-left: auto;
+            margin-right: 6px;
+        }
+
     </style>
 
     <div class="editor">
@@ -504,6 +515,34 @@
                 {
                     components: [
                         {
+                            type: "subform",
+                            label: "Collateral",
+                            cols: 12,
+                            repeatable: true,
+                            subform: {
+                                rows: [
+                                    {
+                                        components: [                   
+                                            {
+                                                label: "Type",
+                                                type: "text",
+                                                cols: 6,
+                                            },
+                                            {
+                                                label: "Value",
+                                                type: "number",
+                                                cols: 6,
+                                            },
+                                        ]
+                                    }
+                                ]
+                            }                            
+                        }
+                    ],
+                },
+                {
+                    components: [
+                        {
                             type: "title",
                             tag: "h4",
                             value: "Approval",
@@ -566,7 +605,60 @@
         }
         */
 
+        const renderSubForm = component => {
+            const renderedComponent = document.createElement('div');
+            renderedComponent.className = `field-wrapper`;
+            renderedComponent.setAttribute('data-component-type', 'subform');
+
+            const inner = document.createElement('div');
+            inner.className = 'inner';
+
+            const label = document.createElement('label');
+            label.innerText = component.label;
+
+            const subformContainer = document.createElement('div');
+            subformContainer.className = `subform`;
+
+            component.subform.rows.map(row => {
+                const renderedRow = renderRow(row);
+                subformContainer.appendChild(renderedRow);
+                return renderRow;
+            });
+
+            inner.appendChild(label);
+            inner.appendChild(subformContainer);
+
+            if (component.repeatable) {
+                const repeatButton = document.createElement('button');
+                repeatButton.innerText = 'Add';
+                repeatButton.addEventListener('click', () => {
+                    component.subform.rows.map(row => {
+                        const renderedRow = renderRow(row);
+                        subformContainer.appendChild(renderedRow);
+                        return renderRow;
+                    });
+                });
+                inner.appendChild(repeatButton);
+            }
+
+            const resizeHandleLeft = document.createElement('div');
+            resizeHandleLeft.className = 'resize-l';
+            inner.appendChild(resizeHandleLeft);
+
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'resize-r';
+            inner.appendChild(resizeHandle);
+            
+            renderedComponent.appendChild(inner);
+
+            return renderedComponent;
+        }
+
         const renderComponent = component => {
+            if (component.type == 'subform') {
+                return renderSubForm(component);
+            }
+
             const renderedComponent = document.createElement('div');
             renderedComponent.className = `field-wrapper`;
             renderedComponent.setAttribute('data-component-type', component.type || 'text');
